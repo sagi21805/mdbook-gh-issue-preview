@@ -26,7 +26,6 @@ impl Preprocessor for GitHubIssuePreprocessor {
                         let repo = &caps[2];
                         let num = &caps[3];
 
-                        // Call the API and return the Zed-style HTML string
                         issue::fetch_github_issue(owner, repo, num, token.as_deref())
                     })
                     .to_string();
