@@ -14,12 +14,6 @@ struct GitHubIssue {
     number: u32,
     state: String,
     labels: Vec<GitHubLabel>,
-    user: GitHubUser,
-}
-
-#[derive(Deserialize)]
-struct GitHubUser {
-    login: String,
 }
 
 pub fn fetch_github_issue(owner: &str, repo: &str, num: &str, token: Option<&str>) -> String {
@@ -67,23 +61,15 @@ fn format_issue(issue: GitHubIssue, owner: &str, repo: &str) -> String {
         .iter()
         .map(|l| {
             format!(
-                "<span class=\"gh-label\" style=\"border-color: #{}; color: #{}\">{}</span>",
-                l.color, l.color, l.name
+                r#"<span class="gh-label" style="border-color:#{c};color:#{c}">{n}</span>"#,
+                c = l.color,
+                n = l.name
             )
         })
         .collect();
 
     format!(
-        r#"<a href="{url}" target="_blank" class="gh-issue-card">
-                <div class="gh-header">
-                    <span class="{status_class}">{status_icon}</span>
-                    <span class="gh-title-text">{title}</span>
-                </div>
-                <div class="gh-labels">{labels}</div>
-                <div class="gh-meta">
-                    {owner}/{repo} <span style="opacity:0.5">#{number}</span> by {author}
-                </div>
-            </a>"#,
+        r#"<a href="{url}" target="_blank" class="gh-issue-card"><div class="gh-header"><span class="{status_class}">{status_icon}</span><span class="gh-title-text">{title}</span></div><div class="gh-labels">{labels}</div><div class="gh-meta">{owner}/{repo} <span style="opacity:0.5">#{number}</span></div></a>"#,
         url = issue.html_url,
         status_class = status_class,
         status_icon = status_icon,
@@ -92,6 +78,5 @@ fn format_issue(issue: GitHubIssue, owner: &str, repo: &str) -> String {
         owner = owner,
         repo = repo,
         number = issue.number,
-        author = issue.user.login
     )
 }
