@@ -1,8 +1,8 @@
 use std::{io, process};
 
-use mdbook::book::Book;
-use mdbook::errors::Error;
-use mdbook::preprocess::{CmdPreprocessor, Preprocessor, PreprocessorContext};
+use mdbook_preprocessor::book::Book;
+use mdbook_preprocessor::errors::Error;
+use mdbook_preprocessor::{Preprocessor, PreprocessorContext};
 use regex::Regex;
 
 mod issue;
@@ -19,7 +19,7 @@ impl Preprocessor for GitHubIssuePreprocessor {
         let token = std::env::var("GITHUB_TOKEN").ok();
 
         book.for_each_mut(|item| {
-            if let mdbook::book::BookItem::Chapter(chapter) = item {
+            if let mdbook_preprocessor::book::BookItem::Chapter(chapter) = item {
                 chapter.content = re
                     .replace_all(&chapter.content, |caps: &regex::Captures| {
                         let owner = &caps[1];
@@ -51,8 +51,8 @@ fn main() {
     }
 }
 
-fn handle_preprocessing(pre: &impl Preprocessor) -> Result<(), mdbook::errors::Error> {
-    let (ctx, book) = CmdPreprocessor::parse_input(io::stdin())?;
+fn handle_preprocessing(pre: &impl Preprocessor) -> Result<(), mdbook_preprocessor::errors::Error> {
+    let (ctx, book) = mdbook_preprocessor::parse_input(io::stdin())?;
     let processed_book = pre.run(&ctx, book)?;
     serde_json::to_writer(io::stdout(), &processed_book)?;
     Ok(())
