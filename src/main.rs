@@ -14,20 +14,35 @@ impl Preprocessor for GitHubIssuePreprocessor {
         "gh-issue-preview-preprocessor"
     }
 
-    fn run(&self, _ctx: &PreprocessorContext, mut book: Book) -> Result<Book, Error> {
+    fn run(
+        &self,
+        _ctx: &PreprocessorContext,
+        mut book: Book,
+    ) -> Result<Book, Error> {
         let re = Regex::new(r"https?://github\.com/([\w-]+)/([\w-]+)/issues/(\d+)").unwrap();
         let token = std::env::var("GITHUB_TOKEN").ok();
 
         book.for_each_mut(|item| {
-            if let mdbook_preprocessor::book::BookItem::Chapter(chapter) = item {
+            if let mdbook_preprocessor::book::BookItem::Chapter(
+                chapter,
+            ) = item
+            {
                 chapter.content = re
-                    .replace_all(&chapter.content, |caps: &regex::Captures| {
-                        let owner = &caps[1];
-                        let repo = &caps[2];
-                        let num = &caps[3];
+                    .replace_all(
+                        &chapter.content,
+                        |caps: &regex::Captures| {
+                            let owner = &caps[1];
+                            let repo = &caps[2];
+                            let num = &caps[3];
 
-                        issue::fetch_github_issue(owner, repo, num, token.as_deref())
-                    })
+                            issue::fetch_github_issue(
+                                owner,
+                                repo,
+                                num,
+                                token.as_deref(),
+                            )
+                        },
+                    )
                     .to_string();
             }
         });
@@ -51,8 +66,11 @@ fn main() {
     }
 }
 
-fn handle_preprocessing(pre: &impl Preprocessor) -> Result<(), mdbook_preprocessor::errors::Error> {
-    let (ctx, book) = mdbook_preprocessor::parse_input(io::stdin())?;
+fn handle_preprocessing(
+    pre: &impl Preprocessor,
+) -> Result<(), mdbook_preprocessor::errors::Error> {
+    let (ctx, book) =
+        mdbook_preprocessor::parse_input(io::stdin())?;
     let processed_book = pre.run(&ctx, book)?;
     serde_json::to_writer(io::stdout(), &processed_book)?;
     Ok(())

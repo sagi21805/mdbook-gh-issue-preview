@@ -1,4 +1,6 @@
-use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue, USER_AGENT};
+use reqwest::header::{
+    AUTHORIZATION, HeaderMap, HeaderValue, USER_AGENT,
+};
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -16,7 +18,12 @@ struct GitHubIssue {
     labels: Vec<GitHubLabel>,
 }
 
-pub fn fetch_github_issue(owner: &str, repo: &str, num: &str, token: Option<&str>) -> String {
+pub fn fetch_github_issue(
+    owner: &str,
+    repo: &str,
+    num: &str,
+    token: Option<&str>,
+) -> String {
     let client = reqwest::blocking::Client::new();
     let url = format!(
         "https://api.github.com/repos/{}/{}/issues/{}",
@@ -24,15 +31,25 @@ pub fn fetch_github_issue(owner: &str, repo: &str, num: &str, token: Option<&str
     );
 
     let mut headers = HeaderMap::new();
-    headers.insert(USER_AGENT, HeaderValue::from_static("mdbook-preprocessor"));
+    headers.insert(
+        USER_AGENT,
+        HeaderValue::from_static("mdbook-preprocessor"),
+    );
 
     if let Some(t) = token {
-        if let Ok(auth_value) = HeaderValue::from_str(&format!("token {}", t)) {
+        if let Ok(auth_value) =
+            HeaderValue::from_str(&format!("token {}", t))
+        {
             headers.insert(AUTHORIZATION, auth_value);
         }
     } else {
-        eprintln!("Github token was not specified, falling back to regular link");
-        return format!("https://github.com/{}/{}/issues/{}", owner, repo, num);
+        eprintln!(
+            "Github token was not specified, falling back to regular link"
+        );
+        return format!(
+            "https://github.com/{}/{}/issues/{}",
+            owner, repo, num
+        );
     }
 
     match client.get(&url).headers(headers).send() {
@@ -45,11 +62,19 @@ pub fn fetch_github_issue(owner: &str, repo: &str, num: &str, token: Option<&str
     }
 
     // Fallback: If API fails, just return a clickable raw link
-    format!("https://github.com/{}/{}/issues/{}", owner, repo, num)
+    format!(
+        "https://github.com/{}/{}/issues/{}",
+        owner, repo, num
+    )
 }
 
-fn format_issue(issue: GitHubIssue, owner: &str, repo: &str) -> String {
-    let status_icon = if issue.state == "open" { "⊙" } else { "✓" };
+fn format_issue(
+    issue: GitHubIssue,
+    owner: &str,
+    repo: &str,
+) -> String {
+    let status_icon =
+        if issue.state == "open" { "⊙" } else { "✓" };
     let status_class = if issue.state == "open" {
         "gh-status-open"
     } else {
